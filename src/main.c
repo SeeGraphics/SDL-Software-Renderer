@@ -1,9 +1,14 @@
+#include "colors.h"
 #include "render.h"
+#include "shapes.h"
 #include "types.h"
 #include "utils.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdio.h>
+
+#define RENDER_WIDTH 800
+#define RENDER_HEIGHT 600
 
 typedef struct {
   SDL_Window *window;
@@ -18,22 +23,20 @@ typedef struct {
 int main(void) {
   Game game = {0};
 
-  u32 window_width = 800;
-  u32 window_height = 600;
+  v2i p1 = {100, 100};
+  v2i p2 = {300, 300};
+  v2i p3 = {180, 500};
+
   const char *title = "A: Hello Window";
-
-  game.pitch = window_width * sizeof(u32);
-
-  // test dot
-  v2i pos = {(int)window_width / 2, (int)window_height / 2};
+  game.pitch = RENDER_WIDTH * sizeof(u32);
 
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     SDL_Log("Failed to Initialize SDL: %s\n", SDL_GetError());
   }
 
   game.window = SDL_CreateWindow(
-      title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_width,
-      window_height, SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_RESIZABLE);
+      title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RENDER_WIDTH,
+      RENDER_HEIGHT, SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_RESIZABLE);
   if (game.window == NULL) {
     SDL_Log("Failed to create Window: %s\n", SDL_GetError());
     SDL_Quit();
@@ -46,12 +49,13 @@ int main(void) {
     SDL_DestroyWindow(game.window);
     SDL_Quit();
   }
+  SDL_RenderSetLogicalSize(game.renderer, RENDER_WIDTH, RENDER_HEIGHT);
 
   game.texture = SDL_CreateTexture(game.renderer, SDL_PIXELFORMAT_ARGB8888,
-                                   SDL_TEXTUREACCESS_STREAMING, window_width,
-                                   window_height);
+                                   SDL_TEXTUREACCESS_STREAMING, RENDER_WIDTH,
+                                   RENDER_HEIGHT);
 
-  game.buffer = malloc(window_width * window_height * sizeof(u32));
+  game.buffer = malloc(RENDER_WIDTH * RENDER_HEIGHT * sizeof(u32));
 
   while (!game.quit) {
     while (SDL_PollEvent(&game.event)) {
@@ -59,35 +63,24 @@ int main(void) {
       case SDL_QUIT:
         game.quit = true;
         break;
+        // TODO: add mousevent that prints out coordinates, so testing is easier
+        // TODO: also try and figure out how normalizing coordinates work
+        // so that all coordinates are in -1.0 - 1.0 space
       case SDL_KEYDOWN:
         if (game.event.key.keysym.sym == SDLK_ESCAPE) {
           game.quit = true;
           break;
-        case SDL_WINDOWEVENT:
-          if (game.event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-            window_width = game.event.window.data1;
-            window_height = game.event.window.data2;
-
-            // update & reallocate
-            texture_recreate(&game.texture, game.renderer, window_width,
-                             window_height);
-            buffer_reallocate(&game.buffer, window_width, window_height,
-                              sizeof(u32));
-            pitch_update(&game.pitch, window_width, sizeof(u32));
-            SDL_RenderSetViewport(game.renderer, NULL);
-            break;
-          }
         }
+      default:
+        break;
       }
     }
 
-    // update test dot position
-    pos.x = (int)window_width / 2;
-    pos.y = (int)window_height / 2;
-
     // black background
-    memset(game.buffer, 0, window_width * window_height * sizeof(u32));
-    set_pixel(game.buffer, window_width, pos, 0xFFFFFFFF); // test dot
+    memset(game.buffer, 0, RENDER_WIDTH * RENDER_HEIGHT * sizeof(u32));
+
+    // draw
+    draw_triangle(game.buffer, RENDER_WIDTH, p1, p2, p3, WHITE);
 
     SDL_UpdateTexture(game.texture, NULL, game.buffer, game.pitch);
     SDL_RenderClear(game.renderer);
