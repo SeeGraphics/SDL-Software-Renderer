@@ -161,8 +161,8 @@ int main(void) {
     memset(game.buffer, 0, game.render_w * game.render_h * sizeof(u32));
 
     // draw
-    draw_triangle_dots(game.buffer, game.render_w, verts[0], verts[1], verts[2],
-                       WHITE, WIREFRAME);
+    draw_triangle_dots(game.buffer, game.render_w, game.render_h, verts[0],
+                       verts[1], verts[2], WHITE, FILLED);
 
     SDL_UpdateTexture(game.texture, NULL, game.buffer, game.pitch);
     SDL_RenderClear(game.renderer);
