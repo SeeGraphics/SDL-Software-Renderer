@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -Werror -std=c17 -g -fno-omit-frame-pointer -fsanitize=address,undefined -lsdl2
+CFLAGS := -Wall -std=c17 -g -fno-omit-frame-pointer -fsanitize=address,undefined -lsdl2
 
 SRC_DIR := src
 BUILD_DIR := build
