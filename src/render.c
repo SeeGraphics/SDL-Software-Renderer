@@ -1,6 +1,20 @@
 #include "render.h"
 #include <stdlib.h>
 
+v2i norm_to_screen(v2f norm, int w, int h) {
+  v2i screen;
+  screen.x = (int)((norm.x * 0.5f + 0.5f) * (float)(w - 1));
+  screen.y = (int)((-norm.y * 0.5f + 0.5f) * (float)(h - 1));
+  return screen;
+}
+
+v2f screen_to_norm(v2i screen, int w, int h) {
+  v2f norm;
+  norm.x = 2.0f * ((float)screen.x / (float)(w - 1)) - 1.0f;
+  norm.y = 1.0f - 2.0f * ((float)screen.y / (float)(h - 1));
+  return norm;
+}
+
 void set_pixel(u32 *buffer, int w, v2i pos, u32 color) {
   buffer[pos.y * w + pos.x] = color;
 }

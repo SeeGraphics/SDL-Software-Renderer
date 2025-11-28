@@ -1,15 +1,13 @@
 
-- try and make drawing shapes easier, propably in normalized space.
-
-- go 3D so add projection matrix and transformations. 
-GOAL: get a square / pane to render in 3D space with camera movement. 
-
-- once the basic functionality is in place, think and plan about the 
-structure of the engine / future library.
-- and give it a name for the repo as well. 
-
--> then: 
-- refine structure, e.g seperation of code into files, file structure, 
-small main loop, streamline shape creation, vertexes etc..., add more functions to simplify that
-- so engine.c propably? 
+  1. Normalize 2D coords: accept v2f in [-1,1], map to pixels each frame (sx = (nx*0.5f + 0.5f)*w, sy = (1 - (ny*0.5f + 0.5f))*h). Keep a helper so resize
+     just reuses it. Render your current triangle via that path to confirm parity.
+  2. Add attribute interpolation: compute barycentric weights in the filler. For a “rainbow” test, carry per-vertex color (float3) and interpolate. Store a
+     z/depth buffer alongside color to prepare for 3D. Implement a tiny RasterTriangle struct with positions + attrs so the rasterizer doesn’t need to know
+     about higher-level types.
+  3. Go 3D: add v3/mat4 math, build model→view→projection→viewport pipeline, perspective divide, near/far clip, simple camera (pos + yaw/pitch or look-at).
+     Render a single transformed triangle/quad with depth test on to prove stability.
+  4. Texture mapping: with barycentrics in place, add perspective-correct interpolation (uOverW, vOverW, invW → divide to sample). Start nearest, then add
+     clamp/wrap. Feed in a simple checker to verify.
+  5. Cubes/meshes: define indexed vertices with positions, colors/uvs, iterate faces, apply transforms, submit to rasterizer. With depth + textures
+     working, cubes fall out easily.
 

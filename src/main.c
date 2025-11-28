@@ -1,4 +1,5 @@
 #include "colors.h"
+#include "render.h"
 #include "shapes.h"
 #include "types.h"
 #include "utils.h"
@@ -30,16 +31,9 @@ int main(void) {
   Game game = {.render_w = 800, .render_h = 600};
   MouseInteract mouse = {{0}, .drag_idx = -1, .r = 8};
 
-  // test quad
-  v2i p1 = {100, 100};
-  v2i p2 = {500, 100};
-  v2i p3 = {100, 500};
-  v2i verts[3] = {p1, p2, p3};
-
-  v2i p4 = {500, 100};
-  v2i p5 = {500, 500};
-  v2i p6 = {100, 500};
-  v2i verts1[3] = {p4, p5, p6};
+  // centered normalized triangle
+  v2f verts_norm[3] = {{-0.5f, -0.5f}, {0.5f, -0.5f}, {0.0f, 0.5f}};
+  v2i verts_screen[3] = {0};
 
   const char *title = "A: Hello Window";
   game.pitch = game.render_w * sizeof(u32);
@@ -73,14 +67,16 @@ int main(void) {
   game.buffer = malloc(game.render_w * game.render_h * sizeof(u32));
 
   while (!game.quit) {
+    for (int i = 0; i < 3; i++) {
+      verts_screen[i] =
+          norm_to_screen(verts_norm[i], game.render_w, game.render_h);
+    }
+
     while (SDL_PollEvent(&game.event)) {
       switch (game.event.type) {
       case SDL_QUIT:
         game.quit = true;
         break;
-        // TODO: add mousevent that prints out coordinates, so testing is easier
-        // TODO: also try and figure out how normalizing coordinates work
-        // so that all coordinates are in -1.0 - 1.0 space
       case SDL_WINDOWEVENT:
         if (game.event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
           game.render_w = game.event.window.data1;
@@ -92,41 +88,40 @@ int main(void) {
           texture_recreate(&game.texture, game.renderer, game.render_w,
                            game.render_h);
           for (int i = 0; i < 3; i++) {
-            clamp_v2i(&verts[i], 0, game.render_w, 0, game.render_h, mouse.r);
+            verts_screen[i] =
+                norm_to_screen(verts_norm[i], game.render_w, game.render_h);
           }
-          // SDL_RenderSetLogicalSize(game.renderer, game.render_w,
-          // game.render_h);
         }
         break;
       case SDL_MOUSEBUTTONDOWN:
         if (game.event.button.button == SDL_BUTTON_LEFT) {
           mouse.mouse_pos = (v2i){game.event.motion.x, game.event.motion.y};
           // distance to each vertex
-          int dx1 = mouse.mouse_pos.x - verts[0].x;
-          int dy1 = mouse.mouse_pos.y - verts[0].y;
-          int dx2 = mouse.mouse_pos.x - verts[1].x;
-          int dy2 = mouse.mouse_pos.y - verts[1].y;
-          int dx3 = mouse.mouse_pos.x - verts[2].x;
-          int dy3 = mouse.mouse_pos.y - verts[2].y;
+          int dx1 = mouse.mouse_pos.x - verts_screen[0].x;
+          int dy1 = mouse.mouse_pos.y - verts_screen[0].y;
+          int dx2 = mouse.mouse_pos.x - verts_screen[1].x;
+          int dy2 = mouse.mouse_pos.y - verts_screen[1].y;
+          int dx3 = mouse.mouse_pos.x - verts_screen[2].x;
+          int dy3 = mouse.mouse_pos.y - verts_screen[2].y;
 
           // check each vertex for collision
           if ((dx1 * dx1 + dy1 * dy1) <= mouse.r * mouse.r) {
             mouse.dragging = true;
             mouse.drag_idx = 0;
-            mouse.drag_offset = (v2i){verts[0].x - mouse.mouse_pos.x,
-                                      verts[0].y - mouse.mouse_pos.y};
+            mouse.drag_offset = (v2i){verts_screen[0].x - mouse.mouse_pos.x,
+                                      verts_screen[0].y - mouse.mouse_pos.y};
           }
           if ((dx2 * dx2 + dy2 * dy2) <= mouse.r * mouse.r) {
             mouse.dragging = true;
             mouse.drag_idx = 1;
-            mouse.drag_offset = (v2i){verts[1].x - mouse.mouse_pos.x,
-                                      verts[1].y - mouse.mouse_pos.y};
+            mouse.drag_offset = (v2i){verts_screen[1].x - mouse.mouse_pos.x,
+                                      verts_screen[1].y - mouse.mouse_pos.y};
           }
           if ((dx3 * dx3 + dy3 * dy3) <= mouse.r * mouse.r) {
             mouse.dragging = true;
             mouse.drag_idx = 2;
-            mouse.drag_offset = (v2i){verts[2].x - mouse.mouse_pos.x,
-                                      verts[2].y - mouse.mouse_pos.y};
+            mouse.drag_offset = (v2i){verts_screen[2].x - mouse.mouse_pos.x,
+                                      verts_screen[2].y - mouse.mouse_pos.y};
           }
         }
         break;
@@ -135,12 +130,15 @@ int main(void) {
         if (game.event.motion.state & SDL_BUTTON_LMASK) {
           if (mouse.dragging) {
             // update vertex pos to mouse_pos
-            verts[mouse.drag_idx] =
-                (v2i){mouse.mouse_pos.x + mouse.drag_offset.x,
-                      mouse.mouse_pos.y + mouse.drag_offset.y};
-            for (int i = 0; i < 3; i++) {
-              clamp_v2i(&verts[i], 0, game.render_w, 0, game.render_h, mouse.r);
-            }
+            v2i updated_screen = {
+                mouse.mouse_pos.x + mouse.drag_offset.x,
+                mouse.mouse_pos.y + mouse.drag_offset.y,
+            };
+            clamp_v2i(&updated_screen, 0, game.render_w - 1, 0,
+                      game.render_h - 1, mouse.r);
+            verts_norm[mouse.drag_idx] =
+                screen_to_norm(updated_screen, game.render_w, game.render_h);
+            verts_screen[mouse.drag_idx] = updated_screen;
           }
         }
         break;
@@ -165,10 +163,16 @@ int main(void) {
     memset(game.buffer, 0, game.render_w * game.render_h * sizeof(u32));
 
     // draw
-    draw_triangle_dots(game.buffer, game.render_w, game.render_h, verts[0],
-                       verts[1], verts[2], WHITE, WIREFRAME);
-    draw_triangle_dots(game.buffer, game.render_w, game.render_h, verts1[0],
-                       verts1[1], verts1[2], WHITE, WIREFRAME);
+    for (int i = 0; i < 3; i++) {
+      verts_screen[i] =
+          norm_to_screen(verts_norm[i], game.render_w, game.render_h);
+      clamp_v2i(&verts_screen[i], 0, game.render_w - 1, 0, game.render_h - 1,
+                0);
+    }
+
+    draw_triangle_dots(game.buffer, game.render_w, game.render_h,
+                       verts_screen[0], verts_screen[1], verts_screen[2], WHITE,
+                       FILLED);
 
     SDL_UpdateTexture(game.texture, NULL, game.buffer, game.pitch);
     SDL_RenderClear(game.renderer);

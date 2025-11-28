@@ -20,7 +20,7 @@ void draw_triangle(u32 *buffer, int w, int h, v2i p1, v2i p2, v2i p3, u32 color,
     int y_start = p1.y;
     int y_end = p3.y;
     for (int y = y_start; y < y_end; y++) {
-      // which edges are active
+      // left & right x-borders
       float xa, xb;
       if (y < p2.y) {
         // upper part (p1 -> p3 && p1 -> p2)
@@ -31,11 +31,13 @@ void draw_triangle(u32 *buffer, int w, int h, v2i p1, v2i p2, v2i p3, u32 color,
         xa = p1.x + (float)(p3.x - p1.x) * (y - p1.y) / (float)(p3.y - p1.y);
         xb = p2.x + (float)(p3.x - p2.x) * (y - p2.y) / (float)(p3.y - p2.y);
       }
+      // if there not sorted just switch them
       if (xa > xb) {
         float t = xa;
         xa = xb;
         xb = t;
       }
+      // make sure we start filling from closest pixel
       int xl = (int)ceilf(xa);
       int xr = (int)floorf(xb);
       // clamp to buffer bounds
