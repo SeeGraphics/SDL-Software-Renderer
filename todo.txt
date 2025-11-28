@@ -1,6 +1,4 @@
 
-  1. Normalize 2D coords: accept v2f in [-1,1], map to pixels each frame (sx = (nx*0.5f + 0.5f)*w, sy = (1 - (ny*0.5f + 0.5f))*h). Keep a helper so resize
-     just reuses it. Render your current triangle via that path to confirm parity.
   2. Add attribute interpolation: compute barycentric weights in the filler. For a “rainbow” test, carry per-vertex color (float3) and interpolate. Store a
      z/depth buffer alongside color to prepare for 3D. Implement a tiny RasterTriangle struct with positions + attrs so the rasterizer doesn’t need to know
      about higher-level types.
