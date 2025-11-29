@@ -15,13 +15,16 @@ SRC_DIR := src
 BUILD_DIR := build
 TARGET := game
 DEMO_TARGET := demo
+MODEL_TARGET := model
 
 SRCS := $(wildcard $(SRC_DIR)/*.c)
 BIN := $(BUILD_DIR)/$(TARGET)
 DEMO_SRCS := $(filter-out src/main.c,$(SRCS)) $(wildcard demo/*.c)
 DEMO_BIN := $(BUILD_DIR)/$(DEMO_TARGET)
+MODEL_SRCS := $(filter-out src/main.c,$(SRCS)) $(wildcard model/*.c)
+MODEL_BIN := $(BUILD_DIR)/$(MODEL_TARGET)
 
-.PHONY: all run demo-run clean
+.PHONY: all run demo-run model model-run clean
 
 all: $(BIN)
 
@@ -33,6 +36,11 @@ demo: $(DEMO_BIN)
 demo-run: $(DEMO_BIN)
 	$(DEMO_BIN)
 
+model: $(MODEL_BIN)
+
+model-run: $(MODEL_BIN)
+	$(MODEL_BIN)
+
 clean:
 	rm -rf $(BUILD_DIR)
 
@@ -41,6 +49,9 @@ $(BIN): $(SRCS) | $(BUILD_DIR)
 
 $(DEMO_BIN): $(DEMO_SRCS) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(DEMO_SRCS) -o $(DEMO_BIN) $(LIBS)
+
+$(MODEL_BIN): $(MODEL_SRCS) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(MODEL_SRCS) -o $(MODEL_BIN) $(LIBS)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)

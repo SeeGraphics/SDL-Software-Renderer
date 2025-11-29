@@ -1,3 +1,6 @@
 #include "engine.h"
 
-int main(void) { return engine_run(); }
+int main(void) { 
+    engine_run(); 
+    return 0;
+}

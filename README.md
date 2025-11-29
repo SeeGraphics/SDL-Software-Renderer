@@ -1,8 +1,10 @@
 # SDL Software Renderer
 
-Small Software Renderer written in C with SDL2 capable of rendering 3D shapes with a movable camera.
+Small Software Renderer written in C with SDL2 capable of rendering models and other 3D shapes.
+All of the work is done on the CPU so naturally its not very fast.  
 
 ![Cube](images/cube.png)
+![Model](images/model.png)
 ![Demo](images/demo.png)
 
 ## Requirements

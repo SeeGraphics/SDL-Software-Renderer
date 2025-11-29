@@ -84,8 +84,7 @@ static void resize_render(Game *game, int window_w, int window_h,
   if (game->render_h == 0)
     game->render_h = 1;
 
-  buffer_reallocate(&game->buffer, game->render_w, game->render_h,
-                    sizeof(u32));
+  buffer_reallocate(&game->buffer, game->render_w, game->render_h, sizeof(u32));
   if (game->depth) {
     free(game->depth);
   }
@@ -131,9 +130,9 @@ static const Vertex3D cube_vertices[] = {
 };
 
 static const int cube_indices[][3] = {
-    {0, 1, 2},   {0, 2, 3},   // front
-    {4, 5, 6},   {4, 6, 7},   // back
-    {8, 9, 10},  {8, 10, 11}, // left
+    {0, 1, 2},    {0, 2, 3},    // front
+    {4, 5, 6},    {4, 6, 7},    // back
+    {8, 9, 10},   {8, 10, 11},  // left
     {12, 13, 14}, {12, 14, 15}, // right
     {16, 17, 18}, {16, 18, 19}, // top
     {20, 21, 22}, {20, 22, 23}  // bottom
@@ -146,9 +145,8 @@ static const int cube_triangle_count =
 
 static bool project_vertex(const ClipVert *cv, const mat4 *proj, int render_w,
                            int render_h, VertexPC *out, int *mask_out) {
-  v4f clip = mat4_mul_v4(*proj,
-                         (v4f){cv->view_pos.x, cv->view_pos.y, cv->view_pos.z,
-                               1.0f});
+  v4f clip = mat4_mul_v4(
+      *proj, (v4f){cv->view_pos.x, cv->view_pos.y, cv->view_pos.z, 1.0f});
   if (clip.w == 0.0f) {
     return false;
   }
@@ -207,10 +205,10 @@ static bool engine_init(Engine *eng) {
   }
 
   const char *title = "A: Hello Window";
-  eng->game.window = SDL_CreateWindow(
-      title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-      (int)eng->game.window_w, (int)eng->game.window_h,
-      SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_RESIZABLE);
+  eng->game.window =
+      SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                       (int)eng->game.window_w, (int)eng->game.window_h,
+                       SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_RESIZABLE);
   if (eng->game.window == NULL) {
     SDL_Log("Failed to create Window: %s\n", SDL_GetError());
     texture_destroy(&eng->texture);
@@ -299,8 +297,7 @@ static void engine_handle_event(Engine *eng, const SDL_Event *event) {
       Uint32 flags = SDL_GetWindowFlags(game->window);
       bool is_full = (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
       if (SDL_SetWindowFullscreen(
-              game->window,
-              is_full ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP) == 0) {
+              game->window, is_full ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP) == 0) {
         int w, h;
         SDL_GetWindowSize(game->window, &w, &h);
         resize_render(&eng->game, w, h, eng->render_scale);
@@ -369,8 +366,8 @@ static void engine_frame(Engine *eng, Uint32 now, float dt) {
   mat4 view = mat4_look_at(
       eng->camera.pos, v3_add(eng->camera.pos, camera_forward(&eng->camera)),
       world_up);
-  mat4 proj = mat4_perspective((float)M_PI / 3.0f, aspect, eng->near_plane,
-                               100.0f);
+  mat4 proj =
+      mat4_perspective((float)M_PI / 3.0f, aspect, eng->near_plane, 100.0f);
   mat4 mv = mat4_mul(view, model);
 
   typedef struct {
@@ -451,13 +448,23 @@ static void engine_frame(Engine *eng, Uint32 now, float dt) {
       }
 
       VertexPC pv[3] = {
-          {.pos = v0->screen, .uv = v0->uv, .inv_w = v0->inv_w, .depth = v0->depth},
-          {.pos = v1->screen, .uv = v1->uv, .inv_w = v1->inv_w, .depth = v1->depth},
-          {.pos = v2->screen, .uv = v2->uv, .inv_w = v2->inv_w, .depth = v2->depth},
+          {.pos = v0->screen,
+           .uv = v0->uv,
+           .inv_w = v0->inv_w,
+           .depth = v0->depth},
+          {.pos = v1->screen,
+           .uv = v1->uv,
+           .inv_w = v1->inv_w,
+           .depth = v1->depth},
+          {.pos = v2->screen,
+           .uv = v2->uv,
+           .inv_w = v2->inv_w,
+           .depth = v2->depth},
       };
 
       draw_textured_triangle(game->buffer, game->depth, game->render_w,
-                             game->render_h, &eng->texture, pv[0], pv[1], pv[2]);
+                             game->render_h, &eng->texture, pv[0], pv[1],
+                             pv[2]);
     } else {
       ClipVert in_poly[4] = {
           {.view_pos = v0->view_pos, .uv = v0->uv},
@@ -477,8 +484,8 @@ static void engine_frame(Engine *eng, Uint32 now, float dt) {
         if (a_in && b_in) {
           out_poly[out_count++] = b;
         } else if (a_in && !b_in) {
-          float t = (-eng->near_plane - a.view_pos.z) /
-                    (b.view_pos.z - a.view_pos.z);
+          float t =
+              (-eng->near_plane - a.view_pos.z) / (b.view_pos.z - a.view_pos.z);
           ClipVert inter = {
               .view_pos = {a.view_pos.x + (b.view_pos.x - a.view_pos.x) * t,
                            a.view_pos.y + (b.view_pos.y - a.view_pos.y) * t,
@@ -487,8 +494,8 @@ static void engine_frame(Engine *eng, Uint32 now, float dt) {
                      a.uv.y + (b.uv.y - a.uv.y) * t}};
           out_poly[out_count++] = inter;
         } else if (!a_in && b_in) {
-          float t = (-eng->near_plane - a.view_pos.z) /
-                    (b.view_pos.z - a.view_pos.z);
+          float t =
+              (-eng->near_plane - a.view_pos.z) / (b.view_pos.z - a.view_pos.z);
           ClipVert inter = {
               .view_pos = {a.view_pos.x + (b.view_pos.x - a.view_pos.x) * t,
                            a.view_pos.y + (b.view_pos.y - a.view_pos.y) * t,

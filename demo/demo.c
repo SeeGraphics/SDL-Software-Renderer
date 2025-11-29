@@ -654,6 +654,12 @@ static void demo_frame(Demo *demo, Uint32 now, float dt) {
       if (!tri[0].depth_ok || !tri[1].depth_ok || !tri[2].depth_ok) {
         continue;
       }
+      v3f edge1 = v3_sub(tri[1].view_pos, tri[0].view_pos);
+      v3f edge2 = v3_sub(tri[2].view_pos, tri[0].view_pos);
+      v3f normal = v3_cross(edge1, edge2);
+      if (v3_dot(normal, tri[0].view_pos) >= 0.0f) {
+        continue;
+      }
       VertexPC pv[3] = {
           {.pos = tri[0].screen, .uv = tri[0].uv, .inv_w = tri[0].inv_w, .depth = tri[0].depth},
           {.pos = tri[1].screen, .uv = tri[1].uv, .inv_w = tri[1].inv_w, .depth = tri[1].depth},
@@ -715,6 +721,13 @@ static void demo_frame(Demo *demo, Uint32 now, float dt) {
         ClipVert *a = &out_poly[tri_sets[t][0]];
         ClipVert *b = &out_poly[tri_sets[t][1]];
         ClipVert *c = &out_poly[tri_sets[t][2]];
+
+        v3f edge1 = v3_sub(b->view_pos, a->view_pos);
+        v3f edge2 = v3_sub(c->view_pos, a->view_pos);
+        v3f normal = v3_cross(edge1, edge2);
+        if (v3_dot(normal, a->view_pos) >= 0.0f) {
+          continue;
+        }
 
         VertexPC pv[3];
         int masks[3];
