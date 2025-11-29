@@ -46,6 +46,7 @@ typedef struct {
   Game game;
   Camera camera;
   Texture texture;
+  bool wireframe;
   float fps;
   Uint32 last_ticks;
   bool running;
@@ -288,6 +289,9 @@ static void engine_handle_event(Engine *eng, const SDL_Event *event) {
     if (event->key.keysym.sym == SDLK_ESCAPE) {
       eng->running = false;
     }
+    if (event->key.keysym.sym == SDLK_r) {
+      eng->wireframe = !eng->wireframe;
+    }
     if (event->key.keysym.sym == SDLK_q) {
       game->mouse_grabbed = !game->mouse_grabbed;
       SDL_SetRelativeMouseMode(game->mouse_grabbed ? SDL_TRUE : SDL_FALSE);
@@ -462,9 +466,14 @@ static void engine_frame(Engine *eng, Uint32 now, float dt) {
            .depth = v2->depth},
       };
 
-      draw_textured_triangle(game->buffer, game->depth, game->render_w,
-                             game->render_h, &eng->texture, pv[0], pv[1],
-                             pv[2]);
+      if (eng->wireframe) {
+        draw_triangle(game->buffer, game->render_w, game->render_h, pv[0].pos,
+                      pv[1].pos, pv[2].pos, WHITE, WIREFRAME);
+      } else {
+        draw_textured_triangle(game->buffer, game->depth, game->render_w,
+                               game->render_h, &eng->texture, pv[0], pv[1],
+                               pv[2]);
+      }
     } else {
       ClipVert in_poly[4] = {
           {.view_pos = v0->view_pos, .uv = v0->uv},
@@ -540,9 +549,14 @@ static void engine_frame(Engine *eng, Uint32 now, float dt) {
           continue;
         }
 
-        draw_textured_triangle(game->buffer, game->depth, game->render_w,
-                               game->render_h, &eng->texture, pv[0], pv[1],
-                               pv[2]);
+        if (eng->wireframe) {
+          draw_triangle(game->buffer, game->render_w, game->render_h, pv[0].pos,
+                        pv[1].pos, pv[2].pos, WHITE, WIREFRAME);
+        } else {
+          draw_textured_triangle(game->buffer, game->depth, game->render_w,
+                                 game->render_h, &eng->texture, pv[0], pv[1],
+                                 pv[2]);
+        }
       }
     }
   }

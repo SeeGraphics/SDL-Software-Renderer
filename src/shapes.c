@@ -8,9 +8,9 @@
 void draw_triangle(u32 *buffer, int w, int h, v2i p1, v2i p2, v2i p3, u32 color,
                    u32 mode) {
   if (mode == WIREFRAME) {
-    draw_linei(buffer, w, p1, p2, color);
-    draw_linei(buffer, w, p2, p3, color);
-    draw_linei(buffer, w, p3, p1, color);
+    draw_linei(buffer, w, h, p1, p2, color);
+    draw_linei(buffer, w, h, p2, p3, color);
+    draw_linei(buffer, w, h, p3, p1, color);
   }
   if (mode == FILLED) {
     sort_by_y(&p1, &p2, &p3);
@@ -58,9 +58,9 @@ void draw_triangle(u32 *buffer, int w, int h, v2i p1, v2i p2, v2i p3, u32 color,
 void draw_triangle_dots(u32 *buffer, int w, int h, v2i p1, v2i p2, v2i p3,
                         u32 color, u32 mode) {
   if (mode == WIREFRAME) {
-    draw_linei(buffer, w, p1, p2, color);
-    draw_linei(buffer, w, p2, p3, color);
-    draw_linei(buffer, w, p3, p1, color);
+    draw_linei(buffer, w, h, p1, p2, color);
+    draw_linei(buffer, w, h, p2, p3, color);
+    draw_linei(buffer, w, h, p3, p1, color);
     draw_cirlcei(buffer, w, p1, 5, RED);
     draw_cirlcei(buffer, w, p2, 5, RED);
     draw_cirlcei(buffer, w, p3, 5, RED);

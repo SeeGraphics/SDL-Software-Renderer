@@ -47,6 +47,7 @@ typedef struct {
   Camera camera;
   ObjModel model;
   Texture fallback_tex;
+  bool wireframe;
   float fps;
   Uint32 last_ticks;
   bool running;
@@ -283,6 +284,9 @@ static void model_demo_handle_event(ModelDemo *demo, const SDL_Event *event) {
     if (event->key.keysym.sym == SDLK_ESCAPE) {
       demo->running = false;
     }
+    if (event->key.keysym.sym == SDLK_r) {
+      demo->wireframe = !demo->wireframe;
+    }
     if (event->key.keysym.sym == SDLK_q) {
       game->mouse_grabbed = !game->mouse_grabbed;
       SDL_SetRelativeMouseMode(game->mouse_grabbed ? SDL_TRUE : SDL_FALSE);
@@ -462,8 +466,13 @@ static void model_demo_frame(ModelDemo *demo, Uint32 now, float dt) {
            .depth = tri[2].depth},
       };
 
-      draw_textured_triangle(game->buffer, game->depth, game->render_w,
-                             game->render_h, tex, pv[0], pv[1], pv[2]);
+      if (demo->wireframe) {
+        draw_triangle(game->buffer, game->render_w, game->render_h, pv[0].pos,
+                      pv[1].pos, pv[2].pos, WHITE, WIREFRAME);
+      } else {
+        draw_textured_triangle(game->buffer, game->depth, game->render_w,
+                               game->render_h, tex, pv[0], pv[1], pv[2]);
+      }
     } else {
       ClipVert in_poly[4] = {
           {.view_pos = tri[0].view_pos, .uv = tri[0].uv},
@@ -539,8 +548,13 @@ static void model_demo_frame(ModelDemo *demo, Uint32 now, float dt) {
           continue;
         }
 
-        draw_textured_triangle(game->buffer, game->depth, game->render_w,
-                               game->render_h, tex, pv[0], pv[1], pv[2]);
+        if (demo->wireframe) {
+          draw_triangle(game->buffer, game->render_w, game->render_h, pv[0].pos,
+                        pv[1].pos, pv[2].pos, WHITE, WIREFRAME);
+        } else {
+          draw_textured_triangle(game->buffer, game->depth, game->render_w,
+                                 game->render_h, tex, pv[0], pv[1], pv[2]);
+        }
       }
     }
   }

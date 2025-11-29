@@ -8,7 +8,7 @@ ifeq ($(SDL_IMAGE_LIBS),)
 SDL_IMAGE_LIBS := -lSDL2_image
 endif
 
-CFLAGS := -Wall -std=c17 -g -fno-omit-frame-pointer -fsanitize=address,undefined -iquote src $(SDL_CFLAGS) $(SDL_IMAGE_CFLAGS)
+CFLAGS := -Wall -std=c17 -O2 -DNDEBUG -iquote src $(SDL_CFLAGS) $(SDL_IMAGE_CFLAGS)
 LIBS := $(SDL_LIBS) $(SDL_IMAGE_LIBS)
 
 SRC_DIR := src

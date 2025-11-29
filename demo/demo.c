@@ -63,6 +63,7 @@ typedef struct {
   Camera camera;
   Texture dirt_tex;
   Texture stone_tex;
+  bool wireframe;
   float fps;
   Uint32 last_ticks;
   bool running;
@@ -477,6 +478,9 @@ static void demo_handle_event(Demo *demo, const SDL_Event *event) {
     if (event->key.keysym.sym == SDLK_ESCAPE) {
       demo->running = false;
     }
+    if (event->key.keysym.sym == SDLK_r) {
+      demo->wireframe = !demo->wireframe;
+    }
     if (event->key.keysym.sym == SDLK_q) {
       game->mouse_grabbed = !game->mouse_grabbed;
       SDL_SetRelativeMouseMode(game->mouse_grabbed ? SDL_TRUE : SDL_FALSE);
@@ -666,8 +670,13 @@ static void demo_frame(Demo *demo, Uint32 now, float dt) {
           {.pos = tri[2].screen, .uv = tri[2].uv, .inv_w = tri[2].inv_w, .depth = tri[2].depth},
       };
 
-      draw_textured_triangle(game->buffer, game->depth, game->render_w,
-                             game->render_h, face->tex, pv[0], pv[1], pv[2]);
+      if (demo->wireframe) {
+        draw_triangle(game->buffer, game->render_w, game->render_h, pv[0].pos,
+                      pv[1].pos, pv[2].pos, WHITE, WIREFRAME);
+      } else {
+        draw_textured_triangle(game->buffer, game->depth, game->render_w,
+                               game->render_h, face->tex, pv[0], pv[1], pv[2]);
+      }
     } else {
       ClipVert in_poly[4] = {
           {.view_pos = tri[0].view_pos, .uv = tri[0].uv},
@@ -743,8 +752,13 @@ static void demo_frame(Demo *demo, Uint32 now, float dt) {
           continue;
         }
 
-        draw_textured_triangle(game->buffer, game->depth, game->render_w,
-                               game->render_h, face->tex, pv[0], pv[1], pv[2]);
+        if (demo->wireframe) {
+          draw_triangle(game->buffer, game->render_w, game->render_h, pv[0].pos,
+                        pv[1].pos, pv[2].pos, WHITE, WIREFRAME);
+        } else {
+          draw_textured_triangle(game->buffer, game->depth, game->render_w,
+                                 game->render_h, face->tex, pv[0], pv[1], pv[2]);
+        }
       }
     }
   }
@@ -756,10 +770,10 @@ static void demo_frame(Demo *demo, Uint32 now, float dt) {
   // Crosshair at the render center (matches ray direction)
   v2i center = {(int)(game->render_w / 2), (int)(game->render_h / 2)};
   int len = 6;
-  draw_linei(game->buffer, game->render_w,
+  draw_linei(game->buffer, game->render_w, game->render_h,
              (v2i){center.x - len, center.y}, (v2i){center.x + len, center.y},
              WHITE);
-  draw_linei(game->buffer, game->render_w,
+  draw_linei(game->buffer, game->render_w, game->render_h,
              (v2i){center.x, center.y - len}, (v2i){center.x, center.y + len},
              WHITE);
 
